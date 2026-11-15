@@ -82,8 +82,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, macos-26 ]
-        cmake-version: [ 'latest' ] # `import std` requires CMake 4.5
+        include: # `import std` requires CMake 4.5
+          - { os: ubuntu-26.04, cmake-version: 'latest', stdlib: libstdc++ }
+          - { os: ubuntu-26.04, cmake-version: 'latest', stdlib: libc++ }
+          - { os: macos-26, cmake-version: 'latest', stdlib: libc++ }
     steps:
       - uses: actions/checkout@v7
       - uses: lukka/get-cmake@latest
@@ -92,12 +94,8 @@ jobs:
       - name: Setup Ubuntu
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo apt-get install -y lsb-release gpg software-properties-common wget
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 23 all
-          sudo ln -s /lib/llvm-23/share /lib/share
-          echo "CMAKE_FLAGS=-D CMAKE_C_COMPILER=clang-23 -D CMAKE_CXX_COMPILER=clang++-23 -D CMAKE_CXX_FLAGS=-stdlib=libc++" >> "$GITHUB_ENV"
+          sudo apt-get update && sudo apt-get install -y clang-tools-22 ${{ matrix.stdlib == 'libc++' && 'libc++-22-dev libc++abi-22-dev' || '' }}
+          echo "CMAKE_FLAGS=-D CMAKE_C_COMPILER=clang-22 -D CMAKE_CXX_COMPILER=clang++-22 ${{ matrix.stdlib == 'libc++' && '-D CMAKE_CXX_FLAGS=-stdlib=libc++' || '' }}" >> "$GITHUB_ENV"
       - name: Setup macOS
         if: runner.os == 'macOS'
         run: |
