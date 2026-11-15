@@ -95,7 +95,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update && sudo apt-get install -y clang-tools-22 ${{ matrix.stdlib == 'libc++' && 'libc++-22-dev libc++abi-22-dev' || '' }}
-          echo "CMAKE_FLAGS=-D CMAKE_C_COMPILER=clang-22 -D CMAKE_CXX_COMPILER=clang++-22 ${{ matrix.stdlib == 'libc++' && '-D CMAKE_CXX_FLAGS=-stdlib=libc++' || '' }}" >> "$GITHUB_ENV"
+          echo "CMAKE_FLAGS=-D CMAKE_C_COMPILER=clang-22 -D CMAKE_CXX_COMPILER=clang++-22 ${{ matrix.stdlib == 'libc++' && '-D CMAKE_CXX_FLAGS=-stdlib=libc++ -D CMAKE_CXX_STDLIB_MODULES_JSON=$(readlink -f $(clang++-22 -stdlib=libc++ -print-file-name=libc++.modules.json))' || '' }}" >> "$GITHUB_ENV"
       - name: Setup macOS
         if: runner.os == 'macOS'
         run: |
