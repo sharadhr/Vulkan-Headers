@@ -100,9 +100,9 @@ jobs:
         if: runner.os == 'Linux' && matrix.stdlib == 'libc++'
         run: |
           sudo apt-get install -y libc++-22-dev libc++abi-22-dev
-          # libc++.modules.json's paths to the std module sources resolve under /lib/share: https://github.com/llvm/llvm-project/issues/172497
-          sudo ln -s /lib/llvm-22/share /lib/share
-          echo "CMAKE_FLAGS=$CMAKE_FLAGS -D CMAKE_CXX_FLAGS=-stdlib=libc++" >> "$GITHUB_ENV"
+          # Clang reports the multiarch libc++.modules.json, whose relative paths to the std module sources only resolve from /usr/lib/llvm-22/lib:
+          # https://github.com/llvm/llvm-project/issues/172497
+          echo "CMAKE_FLAGS=$CMAKE_FLAGS -D CMAKE_CXX_FLAGS=-stdlib=libc++ -D CMAKE_CXX_STDLIB_MODULES_JSON=/usr/lib/llvm-22/lib/libc++.modules.json" >> "$GITHUB_ENV"
       - name: Setup macOS
         if: runner.os == 'macOS'
         run: |
