@@ -94,8 +94,15 @@ jobs:
       - name: Setup Ubuntu
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo apt-get install -y clang-tools-22 ${{ matrix.stdlib == 'libc++' && 'libc++-22-dev libc++abi-22-dev' || '' }}
-          echo "CMAKE_FLAGS=-D CMAKE_C_COMPILER=clang-22 -D CMAKE_CXX_COMPILER=clang++-22 ${{ matrix.stdlib == 'libc++' && '-D CMAKE_CXX_FLAGS=-stdlib=libc++ -D CMAKE_CXX_STDLIB_MODULES_JSON=$(readlink -f $(clang++-22 -stdlib=libc++ -print-file-name=libc++.modules.json))' || '' }}" >> "$GITHUB_ENV"
+          sudo apt-get update && sudo apt-get install -y clang-tools-22
+          echo "CMAKE_FLAGS=-D CMAKE_C_COMPILER=clang-22 -D CMAKE_CXX_COMPILER=clang++-22" >> "$GITHUB_ENV"
+      - name: Setup libc++ (Ubuntu)
+        if: runner.os == 'Linux' && matrix.stdlib == 'libc++'
+        run: |
+          sudo apt-get install -y libc++-22-dev libc++abi-22-dev
+          # libc++.modules.json's paths to the std module sources resolve under /lib/share: https://github.com/llvm/llvm-project/issues/172497
+          sudo ln -s /lib/llvm-22/share /lib/share
+          echo "CMAKE_FLAGS=$CMAKE_FLAGS -D CMAKE_CXX_FLAGS=-stdlib=libc++" >> "$GITHUB_ENV"
       - name: Setup macOS
         if: runner.os == 'macOS'
         run: |
